@@ -1,0 +1,156 @@
+
+;;日本語入力関連
+;(require 'skk-setup)
+;; これは必要？いらないっぽい？skk-setupだけで良いっぽいぞ
+;;(require 'skk-autoloads)
+;; この入力に慣れる感じで頑張れば良いのかねぇ
+;; これはこれで入力しやすいのかもしれないなぁ
+;; C-jの機能を別のキーに割当
+(global-set-key (kbd "C-m") 'newline-and-indent)
+;; C-\でもSKKに切り替えられるように設定
+(setq default-input-method "japanese-skk")
+;; 送り仮名が厳密に正しい候補を優先して表示
+;(setq skk-henkan-strict-okuri-precedence t)
+;; 漢字登録時、送り仮名が厳密に正しいかをチェック
+;(setq skk-check-okurigana-on-toroku t)
+;; テーマ設定
+(require 'color-theme)
+(color-theme-initialize)
+(color-theme-hober)
+
+(require 'elscreen)
+
+
+;; 背景透過
+(set-frame-parameter nil 'alpha 80)
+
+;; 現在行に色をつける
+(global-hl-line-mode 1)
+
+;; 履歴を次回Emacs起動時にも保存する
+(savehist-mode 1)
+
+;; バックスペースをC-hに割り当てる
+(define-key global-map (kbd "C-h") 'delete-backward-char)
+
+;;(define-key global-map (kbd "C-t") 'yas/expand)
+(define-key global-map (kbd "C-t") 'yas/insert-snippet)
+
+;; 二度打ち設定
+(require 'sequential-command-config)
+(sequential-command-setup-keys)
+
+;; 矩形選択変更 (terminalでは利かない？)
+;;(require 'sense-region)
+;;(sense-region-on)
+;(cua-mode t)
+;(setq cua-enable-cua-keys nil)
+;(define-key global-map (kbd "C-q") 'cua-set-rectangle-mark)
+
+;; snippet展開はC-t c
+(define-key global-map (kbd "C-t") 'ac-complete-yasnippet)
+ 
+;; 行番号・桁番号を表示する
+(global-linum-mode 1)
+(column-number-mode 1)
+
+
+;; デフォルト文字コード
+(set-default-coding-systems 'utf-8)
+
+;; 日本語infoの文字化け防止
+(auto-compression-mode t)
+;;(setq coding-system-for-read 'euc-jp)
+
+;;(add-to-list 'Info-directory "~/.emacs.d/info")
+
+
+;; 範囲指定に色付け
+(setq transient-mark-mode t)
+
+
+;; 桁ハイライト設定
+(require 'col-highlight)
+;; 1,2どちらか選ぶ
+;; 1,常にハイライト
+ (column-highlight-mode 1)
+;; 2,放置するとハイライト
+(toggle-highlight-column-when-idle 1)
+(col-highlight-set-interval 6)		; ハイライトの秒数
+
+;; フォント設定
+(set-face-attribute 'default nil
+                    :family "Ricty"
+                    :height 140)
+
+
+;; タブ設定
+(setq-default tab-width 4 indent-tabs-mode nil)
+
+
+;; 対応する括弧を光らせる
+;;(setq show-parent-mode 1)
+(show-paren-mode 1)
+
+;; 全角スペースとタブを可視化
+(defface my-face-b-1 '((t (:background "gray"))) nil)
+(defface my-face-b-2 '((t (:background "gray26"))) nil)
+(defface my-face-u-1 '((t (:foreground "SteelBlue" :underline t))) nil)
+(defvar my-face-b-1 'my-face-b-1)
+(defvar my-face-b-2 'my-face-b-2)
+(defvar my-face-u-1 'my-face-u-1)
+
+(defadvice font-lock-mode (before my-font-lock-mode ())
+  (font-lock-add-keywords
+   major-mode
+   '(("\t" 0 my-face-b-2 append)
+     ("　" 0 my-face-b-1 append)
+     ("[ \t]+$" 0 my-face-u-1 append)
+     ;;("[\r]*\n" 0 my-face-r-1 append)
+     )))
+(ad-enable-advice 'font-lock-mode 'before 'my-font-lock-mode)
+(ad-activate 'font-lock-mode)
+
+;; モードラインに時刻を表示する
+(display-time)
+
+
+;; auto-complete設定
+(when (require 'auto-complete-config nil t)
+  (add-to-list 'ac-dictionary-directories "~/.emacs.d/elisp/ac-dict")
+  (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
+  (ac-config-default))
+
+
+;; hippie-expand
+(setq  hippie-expand-try-functions-list
+       '(try-complete-file-name-partially ;ファイル
+         try-complete-file-name           ;
+         try-expand-all-abbrevs           ;
+         try-expand-dabbrev               ;
+         try-expand-dabbrev-all-buffers   ;
+         try-expand-dabbrev-from-kill     ;
+         try-complete-lisp-symbol-partially ;
+         try-complete-lisp-symbol           ;
+         ))
+
+;; recentf-ext
+(setq recentf-max-saved-items 3000)
+;(require 'recentf-ext)
+
+
+;; color-moccur 設定
+(when (require 'color-moccur nil t)
+  (define-key global-map (kbd "M-o") 'occur-by-moccur)
+  (setq moccur-split-word t)
+  (add-to-list 'dmoccur-exclusion-mask "\\.DS_Store")
+  (add-to-list 'dmoccur-exclusion-mask "^#.+#$")
+  (require 'moccur-edit nil t)
+  (when (and (executable-find "cmigemo")
+	     (require 'migemo nil t))
+    (setq moccur-use-migeo t)))
+
+;; grep-edit 設定
+(require 'grep-edit)
+
+
